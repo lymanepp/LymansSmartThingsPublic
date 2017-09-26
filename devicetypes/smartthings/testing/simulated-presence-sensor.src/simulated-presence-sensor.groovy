@@ -11,6 +11,9 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  */
+preferences {
+	input("departedDelay", "number", title: "Number of minutes to delay when departing (1-30)",  range: "1..30", description: "optional" )        
+}
 metadata {
 	// Automatically generated. Make future change here.
 	definition (name: "Simulated Presence Sensor", namespace: "smartthings/testing", author: "bob") {
@@ -43,12 +46,21 @@ def parse(String description) {
 
 // handle commands
 def arrived() {
+	unschedule(departedHandler)
 	log.trace "Executing 'arrived'"
 	sendEvent(name: "presence", value: "present")
 }
 
 
 def departed() {
+	if (settings.departedDelay) {
+		runIn(settings.departedDelay * 60, "departedHandler")
+	} else {
+		departedHandler()
+	}
+}
+
+void departedHandler() {
 	log.trace "Executing 'departed'"
 	sendEvent(name: "presence", value: "not present")
 }
